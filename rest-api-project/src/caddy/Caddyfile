@@ -1,0 +1,55 @@
+# Caddyfile for REST API deployment
+
+
+n11187085.ifn666.com/assessments/api {
+    # Enable HTTPS automatically
+    tls internal
+
+    # Log access requests
+    log {
+        output file /var/log/caddy/api-access.log {
+            roll_size 10MB
+            roll_keep 10
+        }
+        format json
+    }
+
+    # Set headers for security and CORS
+    header {
+        # Enable CORS
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
+        Access-Control-Max-Age "3600"
+        
+        # Security headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Handle CORS preflight requests
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
+
+    # Reverse proxy to your Node.js application
+    reverse_proxy localhost:3000 {
+        # Health checks
+        health_path /
+        health_interval 30s
+        
+        # Timeouts
+        timeout 60s
+        
+        # Load balancing (if you scale to multiple instances)
+        lb_policy round_robin
+    }
+}
+
+# Redirect www to non-www
+www.n11187085.ifn666.com {
+    redir https://n11187085.ifn666.com{uri} permanent
+}

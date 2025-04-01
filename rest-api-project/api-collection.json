@@ -1,0 +1,336 @@
+{
+  "name": "REST API Assessment Collection",
+  "folders": [
+    {
+      "name": "Authentication",
+      "requests": [
+        {
+          "name": "Register User",
+          "url": "{{baseUrl}}/api/users",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}",
+          "preRequestScript": "",
+          "testScript": "const res = JSON.parse(pm.response.text());\npm.test(\"Status code is 201\", () => pm.response.code === 201);\npm.test(\"Response has token\", () => !!res.token);\npm.test(\"Username is correct\", () => res.username === \"testuser\");\npm.environment.set(\"userId\", res._id);"
+        },
+        {
+          "name": "Login User",
+          "url": "{{baseUrl}}/api/users/login",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}",
+          "preRequestScript": "",
+          "testScript": "const res = JSON.parse(pm.response.text());\npm.test(\"Status code is 200\", () => pm.response.code === 200);\npm.test(\"Has valid token\", () => !!res.token);\npm.environment.set(\"authToken\", res.token);"
+        }
+      ],
+      "folders": []
+    },
+    {
+      "name": "Users",
+      "requests": [
+        {
+          "name": "Get All Users",
+          "url": "{{baseUrl}}/api/users",
+          "method": "GET",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Response is an array or contains users array\", () => Array.isArray(res) || Array.isArray(res.users));"
+        },
+        {
+          "name": "Get User by ID",
+          "url": "{{baseUrl}}/api/users/{{userId}}",
+          "method": "GET",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"User ID matches requested ID\", () => res._id === pm.environment.get(\"userId\"));"
+        },
+        {
+          "name": "Update User",
+          "url": "{{baseUrl}}/api/users/{{userId}}",
+          "method": "PUT",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"username\": \"updateduser\"\n}",
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Username was updated\", () => res.username === \"updateduser\");"
+        },
+        {
+          "name": "Delete User",
+          "url": "{{baseUrl}}/api/users/{{userId}}",
+          "method": "DELETE",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"User was removed\", () => res.message.includes(\"removed\") || res.message.includes(\"deleted\"));"
+        }
+      ],
+      "folders": []
+    },
+    {
+      "name": "Products",
+      "requests": [
+        {
+          "name": "Get All Products",
+          "url": "{{baseUrl}}/api/products",
+          "method": "GET",
+          "headers": [],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\nconst products = Array.isArray(res) ? res : res.products;\npm.test(\"Response contains products\", () => Array.isArray(products));"
+        },
+        {
+          "name": "Create Product",
+          "url": "{{baseUrl}}/api/products",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"name\": \"Test Product\",\n  \"description\": \"This is a test product\",\n  \"price\": 19.99,\n  \"category\": \"Electronics\",\n  \"inStock\": true\n}",
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 201\", () => pm.response.code === 201);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Product has correct name\", () => res.name === \"Test Product\");\npm.environment.set(\"productId\", res._id);"
+        },
+        {
+          "name": "Get Product by ID",
+          "url": "{{baseUrl}}/api/products/{{productId}}",
+          "method": "GET",
+          "headers": [],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\nconst product = res.product || res;\npm.test(\"Product ID matches requested ID\", () => product._id === pm.environment.get(\"productId\"));"
+        },
+        {
+          "name": "Update Product",
+          "url": "{{baseUrl}}/api/products/{{productId}}",
+          "method": "PUT",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"price\": 24.99,\n  \"description\": \"Updated test product description\"\n}",
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Price was updated\", () => res.price === 24.99);\npm.test(\"Description was updated\", () => res.description === \"Updated test product description\");"
+        },
+        {
+          "name": "Filter Products by Category",
+          "url": "{{baseUrl}}/api/products",
+          "method": "GET",
+          "headers": [],
+          "params": [
+            {
+              "name": "category",
+              "value": "Electronics"
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\nconst products = Array.isArray(res) ? res : res.products;\npm.test(\"All products have Electronics category\", () => {\n  if (products.length === 0) return true;\n  return products.every(p => p.category === \"Electronics\");\n});"
+        },
+        {
+          "name": "Delete Product",
+          "url": "{{baseUrl}}/api/products/{{productId}}",
+          "method": "DELETE",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Product was removed\", () => res.message.includes(\"removed\") || res.message.includes(\"deleted\"));"
+        }
+      ],
+      "folders": []
+    },
+    {
+      "name": "Orders",
+      "requests": [
+        {
+          "name": "Create New Product for Order",
+          "url": "{{baseUrl}}/api/products",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"name\": \"Order Test Product\",\n  \"description\": \"This is a test product for orders\",\n  \"price\": 29.99,\n  \"category\": \"Electronics\",\n  \"inStock\": true\n}",
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 201\", () => pm.response.code === 201);\nconst res = JSON.parse(pm.response.text());\npm.environment.set(\"orderProductId\", res._id);"
+        },
+        {
+          "name": "Create Order",
+          "url": "{{baseUrl}}/api/orders",
+          "method": "POST",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"products\": [\n    {\n      \"product\": \"{{orderProductId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"totalAmount\": 59.98,\n  \"shippingAddress\": \"123 Test St, Test City, TE 12345\"\n}",
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 201\", () => pm.response.code === 201);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Order has products\", () => res.products && res.products.length > 0);\npm.environment.set(\"orderId\", res._id);"
+        },
+        {
+          "name": "Get All Orders",
+          "url": "{{baseUrl}}/api/orders",
+          "method": "GET",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\nconst orders = Array.isArray(res) ? res : res.orders;\npm.test(\"Response contains orders\", () => Array.isArray(orders));"
+        },
+        {
+          "name": "Get Order by ID",
+          "url": "{{baseUrl}}/api/orders/{{orderId}}",
+          "method": "GET",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Order ID matches requested ID\", () => res._id === pm.environment.get(\"orderId\"));"
+        },
+        {
+          "name": "Update Order Status",
+          "url": "{{baseUrl}}/api/orders/{{orderId}}",
+          "method": "PUT",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "params": [],
+          "bodyType": "json",
+          "body": "{\n  \"status\": \"processing\"\n}",
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Order status was updated\", () => res.status === \"processing\");"
+        },
+        {
+          "name": "Delete Order",
+          "url": "{{baseUrl}}/api/orders/{{orderId}}",
+          "method": "DELETE",
+          "headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{authToken}}"
+            }
+          ],
+          "params": [],
+          "preRequestScript": "",
+          "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\nconst res = JSON.parse(pm.response.text());\npm.test(\"Order was removed\", () => res.message.includes(\"removed\") || res.message.includes(\"deleted\"));"
+        }
+      ],
+      "folders": []
+    }
+  ],
+  "requests": [
+    {
+      "name": "API Health Check",
+      "url": "{{baseUrl}}",
+      "method": "GET",
+      "headers": [],
+      "params": [],
+      "preRequestScript": "",
+      "testScript": "pm.test(\"Status code is 200\", () => pm.response.code === 200);\npm.test(\"API is healthy\", () => pm.response.text().includes(\"Welcome\"));"
+    }
+  ],
+  "environments": [
+    {
+      "name": "Development",
+      "variables": {
+        "baseUrl": "http://localhost:3000"
+      }
+    },
+    {
+      "name": "Production",
+      "variables": {
+        "baseUrl": "https://n11187085.ifn666.com/assessments/api"
+      }
+    }
+  ]
+}
